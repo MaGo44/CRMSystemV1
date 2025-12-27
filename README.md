@@ -32,7 +32,7 @@ The goal of this system is to provide a centralized platform that allows compani
 - Companies that offer products or services and want to actively manage their online reputation.
 - Customers who want to submit feedback and receive a response from the company.
 
-### Metricas de exito
+### Success Metrics
 - **Tiempo de respuesta** del sistema (baja latencia en operaciones básicas).
 - **Cantidad de reseñas gestionadas** por empresa.
 - **Promedio de rating** visible y actualizado.
@@ -66,7 +66,7 @@ The goal of this system is to provide a centralized platform that allows compani
 
 ## Team
 
-- **Maria** — Full Stack Developer
+- **María José González Guzmán** — Full Stack Developer
   Responsible for system design, backend development, frontend implementation, and deployment.
 
 ## 🗃️ Project info [🔝](#-readme-for-app-)
