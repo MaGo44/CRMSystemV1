@@ -1,0 +1,30 @@
+@startuml C4_Component_Database_Schema
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Database Schema - Prisma Models
+
+System_Boundary(database, "PostgreSQL Database") {
+    
+    Container(companies, "companies", "Table", "id, name, api_key, created_at")
+    
+    Container(users, "users", "Table", "id: UUID (PK), user_email: String (unique), password_hash: String, company_id: UUID (FK → companies), role: UserRole, created_at: DateTime")
+    
+    Container(customers, "customers", "Table", "id: UUID (PK), customer_email: String, customer_name: String, created_at: DateTime")
+    
+    Container(reviews, "reviews", "Table", "id, company_id, rating, comment,\ncustomer_name, status, created_at")
+    
+    Container(replies, "replies", "Table", "id, review_id, message, created_at")
+    
+    Container(company_customers, "company_customers", "Table", "company_id: UUID (FK → companies), customer_id: UUID (FK → customers), created_at: DateTime")
+
+    Container(widgets, "widgets", "Table", "id, company_id, config, embed_code")
+}
+
+' Relaciones
+Rel(companies, users, "1 → N", "Una empresa tiene muchos usuarios")
+Rel(companies, reviews, "1 → N", "Una empresa recibe muchas reseñas")
+Rel(customers, reviews, "1 → N", "Un cliente envía muchas reseñas")
+Rel(reviews, replies, "1 → 1", "Una reseña tiene una respuesta")
+Rel(users, replies, "1 → N", "Un usuario escribe muchas respuestas")
+Rel(companies, customers, "N ←→ N", "Clientes pueden pertenecer a varias empresas")
+Rel(companies, widgets, "1 → N", "Una empresa muchos widgets")

@@ -1,0 +1,29 @@
+@startuml C4_Component_API_MVP
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Component Diagram - API MVP (NestJS + Prisma)
+
+System_Boundary(api, "API Backend") {
+    Container(auth, "Auth Module", "NestJS", "Login/Register, JWT, API Keys")
+    
+    Container(reviews, "Reviews Module", "NestJS", "CRUD de reseñas, respuestas")
+    
+    Container(companies, "Companies Module", "NestJS", "Gestión empresas, métricas básicas")
+    
+    Container(embed, "Embed Module", "NestJS", "Widgets embebidos simples")
+    
+    Container(prisma, "Prisma Service", "Prisma", "Conexión a PostgreSQL")
+}
+
+' External systems
+System_Ext(postgres, "PostgreSQL", "Base de datos")
+System_Ext(sendgrid, "SendGrid", "Emails (solo notificaciones críticas)")
+
+' Minimal relations
+Rel(prisma, postgres, "Lee/escribe", "SQL")
+Rel(reviews, sendgrid, "Envía email al responder", "API (opcional MVP)")
+
+' Internal relations
+Rel(auth, reviews, "Protege endpoints", "Guards")
+Rel(companies, reviews, "Accede a reseñas", "Service calls")
+Rel(embed, reviews, "Obtiene reseñas destacadas", "Service calls")

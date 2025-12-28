@@ -1,0 +1,55 @@
+@startuml C4_Container_Improved
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(customer, "Cliente", "Deja reseñas y recibe respuestas")
+Person(company_user, "Usuario Empresa", "Gestiona reseñas y métricas")
+
+System_Boundary(review_crm, "Sistema CRM de Reseñas") {
+    
+    Container(public_api, "Public API", "REST API/Node.js", "Recibe reseñas de widgets y sirve datos embebidos")
+    
+    Container(admin_dashboard, "Dashboard Admin", "Single Page App/React", "Gestión completa de reseñas, métricas y configuración")
+    
+    Container(embed_widget, "Embed Widget", "JavaScript/HTML", "Formulario y display embebido en sitios web")
+    
+    Container(core_service, "Core Service", "Node.js", "Lógica de negocio, procesamiento, métricas")
+    
+    Container(database, "Database", "PostgreSQL", "Almacena reseñas, empresas, respuestas")
+    
+    Container(email_service, "Email Service", "Node.js + SendGrid", "Envía notificaciones automáticas")
+    
+    Container(auth_service, "Auth Service", "Node.js", "Autenticación y autorización")
+}
+
+' Relaciones externas
+System_Ext(company_site, "Sitio Web Empresa", "WordPress/Shopify/HTML")
+System_Ext(customer_browser, "Navegador Cliente", "Chrome/Firefox/Safari")
+System_Ext(company_browser, "Navegador Empresa", "Chrome/Firefox/Safari")
+
+' Conectividad principal
+Rel(customer, company_site, "Visita sitio web", "HTTP/HTTPS")
+Rel(company_site, embed_widget, "Incluye widget", "JavaScript Tag")
+Rel(embed_widget, public_api, "Envía reseñas nuevas", "POST /api/reviews")
+
+Rel(customer_browser, embed_widget, "Carga y muestra widget", "HTTP")
+Rel(embed_widget, customer_browser, "Muestra formulario/reseñas", "HTML/CSS/JS")
+
+Rel(company_user, company_browser, "Accede al sistema", "HTTP")
+Rel(company_browser, admin_dashboard, "Interactúa con dashboard", "SPA")
+Rel(admin_dashboard, public_api, "Operaciones CRUD", "REST API")
+Rel(admin_dashboard, auth_service, "Login/autenticación", "JWT")
+
+' Conectividad interna
+Rel(public_api, core_service, "Procesa solicitudes", "Internal API")
+Rel(core_service, database, "Persiste datos", "SQL")
+Rel(core_service, email_service, "Dispara notificaciones", "Internal Event")
+Rel(public_api, auth_service, "Valida acceso", "API Key/JWT")
+
+' Relaciones de notificación
+Rel(email_service, customer, "Envía email de respuesta", "SMTP")
+Rel(core_service, company_user, "Notificaciones internas", "WebSocket/SSE (opcional)")
+
+' Relación para embedding
+Rel(company_site, public_api, "Obtiene reseñas para mostrar", "GET /api/embed")
+
+@enduml

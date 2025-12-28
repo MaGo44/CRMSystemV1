@@ -1,0 +1,21 @@
+@startuml C4_Context_Improved
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(user, "Cliente", "Usuario que deja reseñas y recibe respuestas")
+Person(company_user, "Usuario Empresa", "Representante que gestiona reseñas")
+
+System(crm, "CRM de Reseñas", "Sistema central para gestionar reseñas, métricas y comunicación")
+
+System_Ext(company_website, "Sitio Web Empresa", "Landing page o tienda online de la empresa")
+System_Ext(email_service, "Servicio de Email", "Envía notificaciones a clientes")
+System_Ext(browser, "Navegador Web", "Muestra widgets embebidos")
+
+Rel(user, company_website, "Visita y deja reseñas", "HTTP")
+Rel(company_website, crm, "Envía reseñas vía widget/formulario", "API/JavaScript")
+Rel(company_user, crm, "Gestiona reseñas y métricas", "Dashboard Web")
+Rel(crm, email_service, "Solicita envío de notificaciones", "SMTP/API")
+Rel(email_service, user, "Envía respuestas y confirmaciones", "Email")
+Rel(crm, browser, "Sirve widgets embebidos", "JavaScript/HTML")
+Rel(browser, user, "Muestra reseñas destacadas", "HTTP")
+
+@enduml
