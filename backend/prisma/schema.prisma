@@ -1,0 +1,119 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  users     User[]
+  reviews   Review[]
+  embedCode String?   @unique
+  apiKey    String    @unique @default(uuid())
+  isActive  Boolean   @default(true)
+  reviewCount    Int     @default(0)
+  averageRating  Float   @default(0.0)
+  createdAt DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("companies")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  company   Company  @relation(fields: [companyId], references: [id])
+  companyId  String
+  role      UserRole @default(COMPANY_SUPPORT)
+  isActive    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  email     String  @unique
+  reviews   Review[]
+  createdAt DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("customers")
+
+  @@index([email])
+  @@index([createdAt])
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  rating     Int
+  comment    String
+  status     ReviewStatus @default(PENDING)
+  reply      String?
+  repliedAt  DateTime?
+  company    Company  @relation(fields: [companyId], references: [id])
+  companyId  String
+  customer   Customer @relation(fields: [customerId], references: [id])
+  customerId String
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("reviews")
+
+  @@index([companyId, status])
+  @@index([companyId, createdAt])
+  @@index([customerId])
+  @@index([rating])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   // Hasheada
+  name      String?
+  role      AdminRole @default(SUPER_ADMIN)
+  isActive  Boolean  @default(true)
+  
+  lastLogin  DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  @@map("admins")
+}
+
+enum UserRole {
+  COMPANY_ADMIN
+  COMPANY_MANAGER
+  COMPANY_SUPPORT
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  SUPPORT 
+}
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  RESPONDED
+  REJECTED
+  ARCHIVED
+}
