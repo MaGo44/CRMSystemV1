@@ -1,0 +1,16 @@
+dist
+node_modules
+coverage
+generated
+*.md
+*.sql
+*.json
+*.yaml
+*.yml
+package-lock.json
+pnpm-lock.yaml
+Dockerfile
+docker-compose.yml
+.env
+eslint.config.mjs
+.prettierrc
