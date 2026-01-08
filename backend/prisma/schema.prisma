@@ -32,10 +32,12 @@ model Company {
 
 model User {
   id        String   @id @default(uuid())
+  name      String
   email     String   @unique
   password  String
   company   Company  @relation(fields: [companyId], references: [id])
-  companyId  String
+  companyId String
+  repliedReviews Review[]
   role      UserRole @default(COMPANY_SUPPORT)
   isActive    Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -69,6 +71,8 @@ model Review {
   companyId  String
   customer   Customer @relation(fields: [customerId], references: [id])
   customerId String
+  repliedBy  User?    @relation(fields: [repliedById], references: [id])
+  repliedById String?
   ipAddress  String?
   userAgent  String?
   createdAt  DateTime @default(now())
@@ -82,6 +86,8 @@ model Review {
   @@index([rating])
   @@index([status])
   @@index([createdAt])
+  @@index([repliedById])
+  @@index([repliedById, repliedAt])
 }
 
 model Admin {
@@ -101,7 +107,6 @@ model Admin {
 
 enum UserRole {
   COMPANY_ADMIN
-  COMPANY_MANAGER
   COMPANY_SUPPORT
 }
 
