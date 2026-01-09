@@ -95,7 +95,7 @@ model Admin {
   email     String   @unique
   password  String   // Hasheada
   name      String?
-  role      AdminRole @default(SUPER_ADMIN)
+  role      UserRole  @default(SUPER_ADMIN)
   isActive  Boolean  @default(true)
   
   lastLogin  DateTime?
@@ -108,12 +108,10 @@ model Admin {
 enum UserRole {
   COMPANY_ADMIN
   COMPANY_SUPPORT
+  SUPER_ADMIN
+  SUPPORT
 }
 
-enum AdminRole {
-  SUPER_ADMIN
-  SUPPORT 
-}
 enum ReviewStatus {
   PENDING
   APPROVED

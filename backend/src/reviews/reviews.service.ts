@@ -9,6 +9,7 @@ import { ReviewResponse, CreateReviewResponse, ReviewListResponse } from './type
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewQueryDto } from './dto/review-query.dto';
 import { ReplyReviewDto } from './dto/reply-review.dto';
+import { RequestWithUser } from 'src/auth/types/user-auth.types';
 
 @Injectable()
 export class ReviewsService {
@@ -17,7 +18,7 @@ export class ReviewsService {
   async createReview(
     companyId: string,
     dto: CreateReviewDto,
-    req: Request
+    req: RequestWithUser
   ): Promise<CreateReviewResponse> {
     let customerId: string | undefined;
 
@@ -44,8 +45,8 @@ export class ReviewsService {
         status: 'PENDING',
         companyId,
         customerId,
-        ipAddress: (req as any).ip,
-        userAgent: (req as any).headers['user-agent'],
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
       },
       include: {
         customer: true,
@@ -73,7 +74,11 @@ export class ReviewsService {
     };
   }
 
-  async findAllByCompany(companyId: string, query: ReviewQueryDto): Promise<ReviewListResponse> {
+  async findAllByCompany(
+    companyId: string,
+    query: ReviewQueryDto,
+    userId: string
+  ): Promise<ReviewListResponse> {
     const where: any = {
       companyId,
       ...(query.rating && { rating: query.rating }),
@@ -85,6 +90,20 @@ export class ReviewsService {
         createdAt: { lte: new Date(query.endDate) },
       }),
     };
+
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+        isActive: true,
+      },
+      include: {
+        company: true,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado o inactivo');
+    }
 
     if (query.keyword) {
       where.comment = { contains: query.keyword, mode: 'insensitive' };

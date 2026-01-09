@@ -21,7 +21,7 @@ export class CreateReviewDto {
   comment: string;
 
   @ApiProperty({
-    example: 'Juan',
+    example: 'Sarah Molina',
     description: 'Nombre del cliente',
     required: true,
   })
@@ -29,7 +29,7 @@ export class CreateReviewDto {
   customerName: string;
 
   @ApiProperty({
-    example: 'Juan@email.com',
+    example: 'sarah@gmail.com',
     description: 'Email del cliente',
     required: true,
   })

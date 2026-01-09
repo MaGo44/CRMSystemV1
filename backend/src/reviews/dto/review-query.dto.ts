@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { IsOptional, IsInt, IsString, IsDateString, Min, Max, IsEnum } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -22,12 +23,14 @@ export enum SortOrder {
 export class ReviewQueryDto {
   @ApiProperty({ default: 1, minimum: 1 })
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   page?: number = 1;
 
   @ApiProperty({ default: 10, minimum: 1, maximum: 100 })
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   @Max(100)
@@ -35,6 +38,7 @@ export class ReviewQueryDto {
 
   @ApiProperty()
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   rating?: number;
 
@@ -73,19 +77,16 @@ export class ReviewQueryDto {
   @IsEnum(SortOrder)
   sortOrder?: SortOrder = SortOrder.DESC;
 
-  @ApiProperty({ description: 'Buscar en comentarios' })
-  @IsOptional()
-  @IsString()
-  search?: string;
-
   @ApiProperty({ required: false, example: 0 })
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(0)
   skip?: number;
 
   @ApiProperty({ required: false, example: 20 })
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   @Max(100)

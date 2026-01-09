@@ -1,0 +1,12 @@
+import { IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+
+export class ReplyReviewDto {
+  @ApiProperty({
+    example: 'Gracias por tu comentario',
+    description: 'Respuesta a la resena',
+    required: true,
+  })
+  @IsString()
+  reply: string;
+}

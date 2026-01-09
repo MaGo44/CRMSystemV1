@@ -15,7 +15,14 @@ async function bootstrap() {
     .addTag('companies', 'Gestión de empresas')
     .addTag('reviews', 'Gestión de reseñas')
     .addTag('customers', 'Gestión de clientes')
-    .addBearerAuth()
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+      'access-token'
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -32,6 +39,10 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: false,
+      },
     })
   );
 

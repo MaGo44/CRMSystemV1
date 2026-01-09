@@ -3,29 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
-
-export interface SafeUser {
-  id: string;
-  email: string;
-  name: string;
-  companyId: string;
-  role: string;
-}
-
-export interface LoginResponse {
-  access_token: string;
-  user: SafeUser;
-}
-
-export interface RegisterCompanyResponse {
-  access_token: string;
-  user: SafeUser;
-  company: {
-    id: string;
-    name: string;
-    slug: string;
-  };
-}
+import { SafeUser, LoginResponse, RegisterCompanyResponse } from './types/user-auth.types';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -45,7 +24,14 @@ export class AuthService {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) return null;
 
-    const { password: _password, ...safeUser } = user;
+    const safeUser: SafeUser = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      companyId: user.companyId,
+      role: user.role,
+    };
+
     return safeUser;
   }
 
@@ -85,7 +71,7 @@ export class AuthService {
             email: data.email,
             password: hashedPassword,
             name: data.name,
-            role: 'COMPANY_ADMIN',
+            role: UserRole.COMPANY_ADMIN,
           },
         },
       },
@@ -105,7 +91,13 @@ export class AuthService {
     if (!company.users.length) {
       throw new Error('Failed to create associated user');
     }
-    const user = company.users[0];
+    const user: SafeUser = {
+      id: company.users[0].id,
+      email: company.users[0].email,
+      name: company.users[0].name,
+      companyId: company.users[0].companyId,
+      role: company.users[0].role,
+    };
 
     const payload = {
       sub: user.id,

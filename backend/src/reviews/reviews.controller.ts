@@ -28,15 +28,20 @@ import { ReviewQueryDto } from './dto/review-query.dto';
 import { CreateReviewResponse } from './types/review.types';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
-// import { Roles } from 'src/auth/decorators/roles.decorator';
-// import { Role } from 'src/auth/types/role.enum';
+import { RoleType } from 'src/auth/decorators/roles.decorator';
+import { RoleCategory } from 'src/auth/types/user-roles.enum';
+import { Public } from 'src/auth/decorators/public.decorator';
+import { CurrentUser } from 'src/auth/decorators/user-auth.decorator';
+import { SafeUser, RequestWithUser } from 'src/auth/types/user-auth.types';
 
-@ApiTags('Reviews')
+@ApiTags('reviews')
 @Controller('reviews')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ReviewsController {
   constructor(private reviewsService: ReviewsService) {}
 
   @Post(':companyId/create-review')
+  @Public()
   @ApiOperation({
     summary: 'Crear la reseñas',
     description: 'Crea una reseñas vinculada a un cliente existente o uno nuevo',
@@ -48,7 +53,7 @@ export class ReviewsController {
     name: 'companyId',
     description: 'ID de la empresa para la cual se obtienen las reseñas',
     type: String,
-    example: 'e1d61440-4ff5-4f77-8456-84c7c76d1c0e',
+    example: 'e5803103-1875-41a5-9c3d-cc3cbc8d92a5',
   })
   @ApiResponse({
     status: 201,
@@ -79,29 +84,26 @@ export class ReviewsController {
   })
   async create(
     @Body() CreateReviewDto: CreateReviewDto,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
     @Param('companyId') companyId: string
   ): Promise<CreateReviewResponse> {
     return this.reviewsService.createReview(companyId, CreateReviewDto, req);
   }
 
-  @ApiBearerAuth()
+  @ApiBearerAuth('access-token')
   @Get('companies/:companyId/reviews')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(Role.)
+  @RoleType(RoleCategory.COMPANY_USER)
   @ApiOperation({
     summary: 'Obtener lista de reseñas con filtros',
     description: 'Obtiene una lista paginada de resenas aplicando filtros opcionales',
-  })
-  @ApiBody({
-    type: ReviewQueryDto,
   })
   @ApiParam({
     name: 'companyId',
     description: 'ID de la empresa para la cual se obtienen las reseñas',
     type: String,
-    example: 'company-12345',
+    example: 'e5803103-1875-41a5-9c3d-cc3cbc8d92a5',
   })
   @ApiQuery({
     name: 'page',
@@ -130,6 +132,13 @@ export class ReviewsController {
     description: 'Filtrar por calificación',
     type: Number,
     example: 5,
+  })
+  @ApiQuery({
+    name: 'keyword',
+    required: false,
+    description: 'Buscar por palabra clave en comentarios',
+    type: String,
+    example: 'Excelente',
   })
   @ApiQuery({
     name: 'sortBy',
@@ -211,10 +220,10 @@ export class ReviewsController {
     description: 'Empresa no encontrada',
   })
   async findAll(
-    @Body() ReviewQueryDto: ReviewQueryDto,
+    @CurrentUser() user: SafeUser,
     @Param('companyId') companyId: string,
     @Query() query: ReviewQueryDto
   ) {
-    return this.reviewsService.findAllByCompany(companyId, query);
+    return this.reviewsService.findAllByCompany(companyId, query, user.id);
   }
 }
