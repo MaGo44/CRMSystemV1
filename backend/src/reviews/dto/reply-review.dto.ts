@@ -4,7 +4,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export class ReplyReviewDto {
   @ApiProperty({
     example: 'Gracias por tu comentario',
-    description: 'Respuesta a la resena',
+    description: 'Respuesta a la reseña',
     required: true,
   })
   @IsString()

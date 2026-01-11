@@ -10,6 +10,7 @@ import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewQueryDto } from './dto/review-query.dto';
 import { ReplyReviewDto } from './dto/reply-review.dto';
 import { RequestWithUser } from 'src/auth/types/user-auth.types';
+import { StatusReviewDto } from './dto/status-review.dto';
 
 @Injectable()
 export class ReviewsService {
@@ -203,8 +204,89 @@ export class ReviewsService {
       where: { id: reviewId },
       data: {
         reply: dto.reply,
+        repliedById: user.id,
         repliedAt: new Date(),
         status: 'RESPONDED',
+      },
+      include: {
+        customer: true,
+        company: true,
+        repliedBy: true,
+      },
+    });
+
+    return {
+      id: updatedReview.id,
+      rating: updatedReview.rating,
+      comment: updatedReview.comment,
+      status: updatedReview.status,
+      createdAt: updatedReview.createdAt,
+      updatedAt: updatedReview.updatedAt,
+      company: updatedReview.company
+        ? {
+            id: updatedReview.company.id,
+            name: updatedReview.company.name,
+          }
+        : undefined,
+      customer: updatedReview.customer
+        ? {
+            id: updatedReview.customer.id,
+            name: updatedReview.customer.name,
+            email: updatedReview.customer.email,
+          }
+        : undefined,
+      reply: updatedReview.reply,
+      repliedAt: updatedReview.repliedAt,
+      repliedBy: updatedReview.repliedBy
+        ? {
+            id: updatedReview.repliedBy.id,
+            name: updatedReview.repliedBy.name,
+            email: updatedReview.repliedBy.email,
+          }
+        : undefined,
+    };
+  }
+
+  async changeReviewStatus(
+    userId: string,
+    reviewId: string,
+    data: StatusReviewDto
+  ): Promise<ReviewResponse> {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+        isActive: true,
+      },
+      include: {
+        company: true,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado o inactivo');
+    }
+
+    const review = await this.prisma.review.findUnique({
+      where: { id: reviewId },
+      include: {
+        customer: true,
+      },
+    });
+
+    if (!review) {
+      throw new NotFoundException('Reseña no encontrada');
+    }
+
+    if (review.companyId !== user.companyId) {
+      throw new UnauthorizedException(
+        'No tienes permiso para responder a reseñas de otras empresas'
+      );
+    }
+
+    const updatedReview = await this.prisma.review.update({
+      where: { id: reviewId },
+      data: {
+        status: data.status,
       },
       include: {
         customer: true,

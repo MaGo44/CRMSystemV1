@@ -114,7 +114,6 @@ enum UserRole {
 
 enum ReviewStatus {
   PENDING
-  APPROVED
   RESPONDED
   REJECTED
   ARCHIVED

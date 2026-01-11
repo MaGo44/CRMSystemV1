@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Body,
   Query,
   Param,
@@ -23,16 +24,17 @@ import {
 } from '@nestjs/swagger';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
-// import { ReplyReviewDto } from './dto/reply-review.dto';
+import { ReplyReviewDto } from './dto/reply-review.dto';
 import { ReviewQueryDto } from './dto/review-query.dto';
+import { StatusReviewDto } from './dto/status-review.dto';
 import { CreateReviewResponse } from './types/review.types';
+import { SafeUser, RequestWithUser } from 'src/auth/types/user-auth.types';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { RoleType } from 'src/auth/decorators/roles.decorator';
 import { RoleCategory } from 'src/auth/types/user-roles.enum';
-import { Public } from 'src/auth/decorators/public.decorator';
 import { CurrentUser } from 'src/auth/decorators/user-auth.decorator';
-import { SafeUser, RequestWithUser } from 'src/auth/types/user-auth.types';
+import { RoleType } from 'src/auth/decorators/roles.decorator';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @ApiTags('reviews')
 @Controller('reviews')
@@ -44,7 +46,7 @@ export class ReviewsController {
   @Public()
   @ApiOperation({
     summary: 'Crear la reseñas',
-    description: 'Crea una reseñas vinculada a un cliente existente o uno nuevo',
+    description: 'Crea una reseña vinculada a un cliente existente o uno nuevo',
   })
   @ApiBody({
     type: CreateReviewDto,
@@ -83,11 +85,11 @@ export class ReviewsController {
     },
   })
   async create(
-    @Body() CreateReviewDto: CreateReviewDto,
+    @Body() createReviewDto: CreateReviewDto,
     @Req() req: RequestWithUser,
     @Param('companyId') companyId: string
   ): Promise<CreateReviewResponse> {
-    return this.reviewsService.createReview(companyId, CreateReviewDto, req);
+    return this.reviewsService.createReview(companyId, createReviewDto, req);
   }
 
   @ApiBearerAuth('access-token')
@@ -97,7 +99,7 @@ export class ReviewsController {
   @RoleType(RoleCategory.COMPANY_USER)
   @ApiOperation({
     summary: 'Obtener lista de reseñas con filtros',
-    description: 'Obtiene una lista paginada de resenas aplicando filtros opcionales',
+    description: 'Obtiene una lista paginada de reseñas aplicando filtros opcionales',
   })
   @ApiParam({
     name: 'companyId',
@@ -156,7 +158,7 @@ export class ReviewsController {
   })
   @ApiResponse({
     status: 200,
-    description: 'Lista de resenas obtenida',
+    description: 'Lista de reseñas obtenida',
     schema: {
       type: 'object',
       properties: {
@@ -225,5 +227,117 @@ export class ReviewsController {
     @Query() query: ReviewQueryDto
   ) {
     return this.reviewsService.findAllByCompany(companyId, query, user.id);
+  }
+
+  @ApiBearerAuth('access-token')
+  @Patch(':reviewId/reply')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @RoleType(RoleCategory.COMPANY_USER)
+  @ApiOperation({
+    summary: 'Responder a una reseña',
+    description: 'Permite a un usuario autorizado responder a una reseña específica',
+  })
+  @ApiBody({
+    type: ReplyReviewDto,
+  })
+  @ApiParam({
+    name: 'reviewId',
+    description: 'ID de la reseña a la que se responde',
+    type: String,
+    example: 'aa6562c7-ecec-44ec-8ed5-30cc9c91baf1',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Respuesta registrada exitosamente',
+    schema: {
+      type: 'object',
+      example: {
+        id: 'aa6562c7-ecec-44ec-8ed5-30cc9c91baf1',
+        rating: 5,
+        comment: 'Muy buen servicio',
+        status: 'RESPONDED',
+        reply: 'Gracias por tu comentario',
+        repliedAt: '2024-01-10T18:45:00.000Z',
+        repliedBy: {
+          id: '11c4eb62-ee6e-4b3a-b694-568113bc1ed0',
+          name: 'Juan Parra',
+          email: 'admin@empresa.com',
+        },
+        createdAt: '2024-01-10T18:45:00.000Z',
+        updatedAt: '2024-01-10T18:45:00.000Z',
+        customer: {
+          id: '239abddb-a05e-4c79-9653-597b112c36b1',
+          name: 'Sarah Molina',
+          email: 'sarah@gmail.com',
+        },
+        company: {
+          id: 'e1d61440-4ff5-4f77-8456-84c7c76d1c0e',
+          name: 'Empresa S.A.',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'No autorizado - Token inválido o expirado',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'No tiene permisos para acceder a este recurso',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Reseña no pertenece a la empresa',
+  })
+  async replyToReview(
+    @Param('reviewId') reviewId: string,
+    @Body() replyReviewDto: ReplyReviewDto,
+    @CurrentUser() user: SafeUser
+  ) {
+    return this.reviewsService.replyToReview(user.id, reviewId, replyReviewDto);
+  }
+
+  @ApiBearerAuth('access-token')
+  @Patch(':reviewId/status')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @RoleType(RoleCategory.COMPANY_USER)
+  @ApiOperation({
+    summary: 'Cambiar el estado de una reseña',
+    description: 'Permite a un usuario autorizado cambiar el estado de una reseña específica',
+  })
+  @ApiParam({
+    name: 'reviewId',
+    description: 'ID de la reseña cuyo estado se va a cambiar',
+    type: String,
+    example: 'aa6562c7-ecec-44ec-8ed5-30cc9c91baf1',
+  })
+  @ApiBody({
+    type: StatusReviewDto,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Estado de la reseña actualizado exitosamente',
+    type: StatusReviewDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'No autorizado - Token inválido o expirado',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'No tiene permisos para acceder a este recurso',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Reseña no encontrada',
+  })
+  async changeReviewStatus(
+    @Param('reviewId') reviewId: string,
+    @CurrentUser() user: SafeUser,
+    @Body() dto: StatusReviewDto
+  ) {
+    return this.reviewsService.changeReviewStatus(user.id, reviewId, dto);
   }
 }
