@@ -4,12 +4,12 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/database/prisma/prisma.service';
 import { ReviewResponse, CreateReviewResponse, ReviewListResponse } from './types/review.types';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewQueryDto } from './dto/review-query.dto';
 import { ReplyReviewDto } from './dto/reply-review.dto';
-import { RequestWithUser } from 'src/auth/types/user-auth.types';
+import { RequestWithUser } from 'src/modules/auth/types/user-auth.types';
 import { StatusReviewDto } from './dto/status-review.dto';
 
 @Injectable()

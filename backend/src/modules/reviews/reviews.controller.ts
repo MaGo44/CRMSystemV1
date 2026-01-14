@@ -28,13 +28,13 @@ import { ReplyReviewDto } from './dto/reply-review.dto';
 import { ReviewQueryDto } from './dto/review-query.dto';
 import { StatusReviewDto } from './dto/status-review.dto';
 import { CreateReviewResponse } from './types/review.types';
-import { SafeUser, RequestWithUser } from 'src/auth/types/user-auth.types';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { RoleCategory } from 'src/auth/types/user-roles.enum';
-import { CurrentUser } from 'src/auth/decorators/user-auth.decorator';
-import { RoleType } from 'src/auth/decorators/roles.decorator';
-import { Public } from 'src/auth/decorators/public.decorator';
+import { SafeUser, RequestWithUser } from 'src/modules/auth/types/user-auth.types';
+import { JwtAuthGuard } from 'src/modules/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/modules/auth/guards/roles.guard';
+import { RoleCategory } from 'src/modules/auth/types/user-roles.enum';
+import { CurrentUser } from 'src/modules/auth/decorators/user-auth.decorator';
+import { RoleType } from 'src/modules/auth/decorators/roles.decorator';
+import { Public } from 'src/modules/auth/decorators/public.decorator';
 
 @ApiTags('reviews')
 @Controller('reviews')
@@ -67,8 +67,6 @@ export class ReviewsController {
           rating: 5,
           comment: 'Muy buen servicio',
           status: 'PENDING',
-          companyId: '',
-          customerId: '',
           ipAddress: '',
           userAgent: '',
           customer: {
