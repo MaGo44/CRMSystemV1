@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: review-crm-db
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  backend:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: builder
+    container_name: review-crm-backend
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      NODE_ENV: ${NODE_ENV}
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "pnpm exec prisma generate && pnpm start:dev"
+  
+  prisma-studio:
+    image: node:18-alpine
+    container_name: review-crm-prisma-studio
+    working_dir: /app
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    volumes:
+      - .:/app
+    ports:
+      - "5555:5555"
+    depends_on:
+      - postgres
+    command: npx prisma studio
+
+volumes:
+  postgres_data:
